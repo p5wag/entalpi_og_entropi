@@ -9,6 +9,7 @@ void main() {
   runApp(const MyApp());
 }
 
+// The class for a substance in the equation, a substance has a coeff, name and state.
 class Substance {
   Substance(this.coefficient, this.nameAndState);
 
@@ -16,6 +17,7 @@ class Substance {
   String nameAndState;
 }
 
+// Defines the design mostly
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
@@ -31,7 +33,7 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
+// makes the title at the top
 class MyHomePage extends StatefulWidget {
   const MyHomePage({Key? key, required this.title}) : super(key: key);
 
@@ -52,9 +54,8 @@ class _MyHomePageState extends State<MyHomePage> {
   double R = 8.314; // J / mol K
 
 
-
-
-
+  // TODO: Get these values from a JSON file
+  // list of the standard S from Databog fysik kemi
   Map<String, double> entropyTable = {
     'Li*(aq)': 12.24,
     'Li2CO3(s)': 90.37,
@@ -113,6 +114,7 @@ class _MyHomePageState extends State<MyHomePage> {
     'SO3(g)': 256.83
   };
 
+  // List of the standard H from Databog fysik kemi
   Map<String, double> enthalpyTable = {
     'Li*(aq)': -278.47,
     'Li2CO3(s)': -1215.6,
@@ -171,31 +173,64 @@ class _MyHomePageState extends State<MyHomePage> {
     'SO3(g)': -395.72
   };
 
+  // General look of an error popup
+  AlertDialog errorDialog (String msg){
+    return AlertDialog(
+        title: const Text("Fejl"),
+        content: Text( msg),
+        actions: [TextButton( onPressed:  ()  {Navigator.of(context).pop();}, child: const Text("Jeg retter det"))]
+    );
+  }
+
+  // Analyses the reactant and product strings and returns the substances involved.
   List<Substance> stringAnalysis(String str) {
+    // Remove any leading or trailing spaces
     str = str.trim();
 
+    // Split the string by plus as this seperates substances
     List<String> substances = str.split('+');
+    // Makes an empty substance list. Here called reactants eventhough its a little confusing.
     List<Substance> reactants = [Substance(1, 'n g')];
     reactants.clear();
 
+    // for each element from the string do this
     for (var element in substances) {
       element = element.trim();
 
+      // The substance is comprised of coeff and namestate. This is seperated by space
       List<String> parts = element.split(' ');
+
+      // If the element is formatted wrong try and help user. And don't continue
+      if (parts.length != 2) {
+        String doThis = "";
+        if (parts.length < 2){
+          doThis = "Du mangler at skrive enten koefficent eller stof ved: ";
+        } else {
+          doThis = "Du har skrevet for meget (Måske der er mellemrum mellem stof og tilstandsform) ved: ";
+        }
+        showDialog(context: context, builder: (_) => errorDialog(doThis + element));
+        return reactants;
+      }
+
 
       int coefficient = 1;
       String nameAndState = "";
 
+      // first try and parse coefficent and tell user if wrong
       try {
         coefficient = int.parse(parts[0]);
-        nameAndState = parts[1];
       } on FormatException catch (_) {
-        coefficient = 1;
-        nameAndState = parts[0];
+        showDialog(context: context, builder: (_) => errorDialog("Koefficenten er forkert skrevet skal være et heltal her: $element. Koefficenten der blev indtastet er ${parts[0]}"));
+        return reactants;
       }
-
-      //print('Coefficient: $coefficient and compound $nameAndState');
-
+      // Hereafter we check if the substance is present in our tables
+      if(entropyTable.containsKey(parts[1])){
+        nameAndState = parts[1];
+      } else {
+        showDialog(context: context, builder: (_) => errorDialog("Stoffet ${parts[1]} findes ikke i databasen"));
+        return reactants;
+      }
+      
       reactants.add(Substance(coefficient, nameAndState));
     }
 

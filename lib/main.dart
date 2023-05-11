@@ -1,3 +1,4 @@
+import 'dart:ffi';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -48,6 +49,9 @@ class _MyHomePageState extends State<MyHomePage> {
   String reactantString = "";
   String productString = "";
   String tempString = "";
+  String stofString = "";
+  String entaString = "";
+  String entrString = "";
   var reactantController = TextEditingController();
   var temperatureController = TextEditingController();
   var productController = TextEditingController();
@@ -348,16 +352,30 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     if (type == "gibbs"){
-      string = "For reaktionen $reactantString  -->️  $productString gælder\n";
-      string += "ΔG = ${values[2].toStringAsFixed(2)} kJ / mol\n";
-      string += "Fordi ΔG = ΔHӨ - ΔSӨ * T = (${values[0].toStringAsFixed(2)} kJ / mol) - (${values[1].toStringAsFixed(2)} J/K * mol) * ";
-      if (temperatureController.text == ""){ string += "298.15"; } else { string += temperatureController.text; } string += " K \n\n";
-      string += "ΔG er 0 ved denne temperatur ${values[3].toStringAsFixed(2)} K \n";
-      string += "Fordi T = (ΔHӨ * 10^3) / ΔSӨ = (${values[0].toStringAsFixed(2)} kJ/mol * 10^3) / ${values[1].toStringAsFixed(2)} J/K * mol \n\n";
-      string += "Ligevægten(k) ved denne temperatur er ${values[4]} (Husk at finde en enhed) \n";
-      string += "Fordi k = exp(((-ΔHӨ * 10^3)/R) * (1/T) + (ΔSӨ / R)) = exp(((-(${values[0].toStringAsFixed(2)}) * 10^3)/8.314) * (1/ ";
+      string += """\\begin{equation*}
+      \\Delta G = \\Delta H^\\circ - \\Delta S^\\circ \\cdot T
+      \\end{equation*}
+      \\begin{align*}
+          \\Delta G = \\SI{${values[0].toStringAsFixed(2)}}{kJ.mol^{-1}}  - \\frac{${values[1].toStringAsFixed(2)}}{1000} \\si{kJ.K^{-1}.mol^{-1}} \\cdot \\SI{""";
       if (temperatureController.text == ""){ string += "298.15"; } else { string += temperatureController.text; }
-      string += ") + (${values[1].toStringAsFixed(2)} / 8.314 )) \n";
+      string += """}{K} = \\SI{${values[2].toStringAsFixed(2)}}{kJ.mol^{-1}}
+       \\end{align*}
+       Temperaturen hvor \$\\Delta G = 0\$ kan findes ved:
+       \\begin{equation*}
+           T = \\frac{\\Delta H^\\circ \\cdot 10^3}{\\Delta S^\\circ}
+       \\end{equation*}
+       \\begin{equation*}
+           T = \\frac{ ${values[0].toStringAsFixed(2)} \\cdot 10^3 \\si{J.mol^{-1}}}{\\SI{${values[1].toStringAsFixed(2)}}{J.K^{-1}.mol^{-1}}} = \\SI{${values[3].toStringAsFixed(2)}}{K}
+       \\end{equation*}
+       Ligevægtskonstanten ved denne temperatur kan findes med van't Hoffs ligning:
+       \\begin{equation*}
+           K = e^{-\\frac{\\Delta H ^\\circ \\cdot 10^3}{R} \\cdot \\frac{1}{T} + \\frac{\\Delta S^\\circ}{R}}
+       \\end{equation*}
+       \\begin{equation*}
+           K = e^{-\\frac{${values[0].toStringAsFixed(2)} \\cdot 10^3}{8.314} \\cdot \\frac{1}{""";
+      if (temperatureController.text == ""){ string += "298.15"; } else { string += temperatureController.text; };
+      string += """} + \\frac{${values[1].toStringAsFixed(2)}}{8.314}} =${values[4].toStringAsFixed(2)}
+      \\end{equation*}""";
     }
 
     return string;
@@ -470,6 +488,54 @@ class _MyHomePageState extends State<MyHomePage> {
                     style: TextButton.styleFrom(
                         textStyle: const TextStyle(fontSize: 20)),
                     child: const Text("Gibb's")),
+                const SizedBox(
+                  width: 10,
+                ),
+                // Entropi Knap
+                TextButton(
+                    onPressed: () {
+                      setState(() {
+                        showDialog(context: context, builder: (_) => AlertDialog(
+                            title: const Text("Fejl"),
+                            content: Column( children: [
+                              Text("Stof"),
+                              TextField(
+                              decoration: const InputDecoration(
+                                  border: OutlineInputBorder(), labelText: 'Reaktanter'),
+                              onChanged: (txt) {
+                                stofString = txt;
+                              },
+                            ),
+                            Text("Standard entalpi (H) værdi"),
+                            TextField(
+                                decoration: const InputDecoration(
+                                    border: OutlineInputBorder(), labelText: 'Reaktanter'),
+                                onChanged: (txt) {
+                                  entaString = txt;
+                                },),
+                              Text("Standard entropi (S) værdi"),
+                              TextField(
+                                decoration: const InputDecoration(
+                                    border: OutlineInputBorder(), labelText: 'Reaktanter'),
+                                onChanged: (txt) {
+                                  entrString = txt;
+                                  },)
+                            ]
+                            ),
+                            actions: [TextButton( onPressed:  ()  {Navigator.of(context).pop();}, child: const Text("Anuller")),
+                              TextButton( onPressed:  ()  {
+                                entropyTable[stofString] = double.parse(entrString);
+                                enthalpyTable[stofString] = double.parse(entaString);
+                                Navigator.of(context).pop();
+                                }, child: const Text("Tilføj"))
+                            ]
+                        )
+                        );
+                      });
+                    },
+                    style: TextButton.styleFrom(
+                        textStyle: const TextStyle(fontSize: 20)),
+                child: const Text("Tilføj værdi"))
               ],
             ),
             const SizedBox(
@@ -485,8 +551,12 @@ class _MyHomePageState extends State<MyHomePage> {
                 style: TextButton.styleFrom(
                     textStyle: const TextStyle(fontSize: 20)),
                 child: const Text('Slet input')),
-            // Resultatet
-            SelectableText(result, style: const TextStyle(fontSize: 16))
+            Expanded(child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              // Resultatet
+               child: SelectableText(result, style: const TextStyle(fontSize: 16))
+            ))
+
           ],
         ),
       ),

@@ -230,7 +230,7 @@ class _MyHomePageState extends State<MyHomePage> {
         showDialog(context: context, builder: (_) => errorDialog("Stoffet ${parts[1]} findes ikke i databasen"));
         return reactants;
       }
-      
+
       reactants.add(Substance(coefficient, nameAndState));
     }
 
@@ -281,33 +281,73 @@ class _MyHomePageState extends State<MyHomePage> {
 
     List<double> values = calculate(reactants, products);
 
-    String enthalpyDownString = '';
-    String entropyDownString = '';
-
-    for (Substance element in reactants) {
-      String name = element.nameAndState;
-
-      enthalpyDownString += "${enthalpyTable[name]}  ";
-      entropyDownString += "${entropyTable[name]}  ";
-    }
-    enthalpyDownString +="  -->  ";
-    entropyDownString +="  -->  ";
-    for (Substance element in products) {
-      String name = element.nameAndState;
-
-      enthalpyDownString += "${enthalpyTable[name]}  ";
-      entropyDownString += "${entropyTable[name]}  ";
-    }
-
     String string = "";
 
-    if (type == "entalpi") {
-      string = "$reactantString  -->  $productString\n$enthalpyDownString\n";
-      string += "ΔHӨ = ${values[0].toStringAsFixed(2)} kJ/mol";
-    } else if (type == "entropi") {
-      string = "$reactantString  -->  $productString\n$entropyDownString\n";
-      string += "ΔSӨ = ${values[1].toStringAsFixed(2)} J/(K * mol)";
-    } else if (type == "gibbs"){
+    // TODO: Tilføj "$reactantString  -->  $productString først i strengen så man kan se hvad man arbejder med
+
+    if( type == "entalpi" || type == "entropi" ){
+      String sOrH = "";
+
+      if ( type == "entalpi"){
+        sOrH = "H";
+      } else{
+        sOrH = "S";
+      }
+      // start the general equation
+      string += """\\begin{align*}
+        \\Delta $sOrH^\\circ = \\left( """;
+      // Get all products and put them in the string
+      for (Substance element in products) {
+        if (products[0] != element ){
+          string += " + ";
+        }
+        string += "${element.coefficient} \\cdot $sOrH^\\circ \\left( \\ch{${element.nameAndState}} \\right)";
+      }
+      string += "\\right) - \\left(";
+      for (Substance element in reactants) {
+        if (reactants[0] != element ){
+          string += " + ";
+        }
+        string += "${element.coefficient} \\cdot $sOrH^\\circ \\left( \\ch{${element.nameAndState}} \\right)";
+      }
+      string += " \\right) \n \\end{align*} \n";
+
+      // Start the equation with the numbers
+      string += """\\begin{align*}
+        \\Delta $sOrH^\\circ = \\left( """;
+      // Get all products and put them in the string
+      for (Substance element in products) {
+        if (products[0] != element ){
+          string += " + ";
+        }
+        String value = "";
+        if(sOrH == "H"){ value = enthalpyTable[element.nameAndState].toString(); }
+        else if (sOrH == "S") {value = entropyTable[element.nameAndState].toString();}
+        string += "${element.coefficient} \\cdot  \\left( $value \\right)";
+      }
+      string += "\\right) - \\left(";
+      for (Substance element in reactants) {
+        if (reactants[0] != element ){
+          string += " + ";
+        }
+        String value = "";
+        if(sOrH == "H"){ value = enthalpyTable[element.nameAndState].toString(); }
+        else if (sOrH == "S") {value = entropyTable[element.nameAndState].toString();}
+        string += "${element.coefficient} \\cdot \\left( $value \\right)";
+      }
+      if (sOrH == "H") {
+        string +=
+        " \\right)  \\si{kJ.mol^{-1}} = \\SI{ ${values[0]
+            .toStringAsFixed(2)}}{kJ.mol^{-1}} \n \\end{align*} \n";
+      } else {
+        string +=
+        " \\right)  \\si{J.K^{-1}.mol^{-1}}  = \\SI{${values[1]
+            .toStringAsFixed(2)}}{J.K^{-1}.mol^{-1}} \n \\end{align*} \n";
+      }
+      return string;
+    }
+
+    if (type == "gibbs"){
       string = "For reaktionen $reactantString  -->️  $productString gælder\n";
       string += "ΔG = ${values[2].toStringAsFixed(2)} kJ / mol\n";
       string += "Fordi ΔG = ΔHӨ - ΔSӨ * T = (${values[0].toStringAsFixed(2)} kJ / mol) - (${values[1].toStringAsFixed(2)} J/K * mol) * ";

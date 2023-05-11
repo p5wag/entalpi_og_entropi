@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-//TODO: Sig hvilket stof der ikke kan findes. måske åben en tabel.
+//TODO: Sig hvilket stof der ikke kan findes. måske åben en tabel. huh
 
 void main() {
   runApp(const MyApp());

@@ -56,6 +56,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
 
   Map<String, double> entropyTable = {
+    'Li*(aq)': 12.24,
+    'Li2CO3(s)': 90.37,
+    'CO32-(aq)': -50.0,
     'Ag(s)': 42.55,
     'Ag*(aq)': 73.45,
     'AgCl(s)': 96.25,
@@ -69,6 +72,7 @@ class _MyHomePageState extends State<MyHomePage> {
     'C2H4(g)': 219.3,
     'C7H16(l)': 326.1,
     'CH3OH(l)': 126.8,
+    'CH3OH(g)': 239.9,
     'CH3CH2OH(l)': 160.7,
     'CH3CH2OH(g)': 281.6,
     'CO(g)': 197.66,
@@ -103,10 +107,16 @@ class _MyHomePageState extends State<MyHomePage> {
     'O2(g)': 205.15,
     'OH-(aq)': -10.90,
     'SO2(g)': 248.23,
+    'TiO2(s)': 50.62,
+    'Cl2(g)': 223.08,
+    'TiCl4(g)': 354.8,
     'SO3(g)': 256.83
   };
 
   Map<String, double> enthalpyTable = {
+    'Li*(aq)': -278.47,
+    'Li2CO3(s)': -1215.6,
+    'CO32-(aq)': -675.23,
     'Ag(s)': 0.0,
     'Ag*(aq)': 105.79,
     'AgCl(s)': -127.01,
@@ -120,6 +130,7 @@ class _MyHomePageState extends State<MyHomePage> {
     'C2H4(g)': 52.30,
     'C7H16(l)': -224.2,
     'CH3OH(l)': -239.2,
+    'CH3OH(g)': -201.0,
     'CH3CH2OH(l)': -277.6,
     'CH3CH2OH(g)': -234.8,
     'CO(g)': -110.53,
@@ -154,6 +165,9 @@ class _MyHomePageState extends State<MyHomePage> {
     'O2(g)': 0.0,
     'OH-(aq)': -230.01,
     'SO2(g)': -296.81,
+    'TiO2(s)': -944.0,
+    'Cl2(g)': 0.0,
+    'TiCl4(g)': -763.2,
     'SO3(g)': -395.72
   };
 
